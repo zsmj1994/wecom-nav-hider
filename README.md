@@ -8,7 +8,17 @@ Windows 企业微信导航栏精简工具。通过终端勾选要隐藏的导航
 
 ## 快速开始
 
-环境：Windows、PowerShell 7（`pwsh.exe`）、Python 3.10+（包含 `pythonw.exe`）。项目尚未打包独立 EXE。
+### EXE 便携版（推荐）
+
+从 [GitHub Releases](https://github.com/zsmj1994/wecom-nav-hider/releases/latest) 下载 `windows-x64.zip`，完整解压到可写目录，双击 **WeComNavHider.exe**。无需安装 Python、PowerShell 或 Frida。需要 Windows 10/11 x64，企业微信仍须匹配上方指定版本。
+
+EXE 旁边的 `_internal` 是运行库，不能删除或单独移动 EXE。首次运行自动创建 `config.json`；选择后回车即可后台运行，终端可关闭。双击 `Stop-Hiding.cmd` 停止隐藏；`Start-Background.vbs` 使用已保存配置后台启动。配置与日志保存在 EXE 同目录，升级时可保留自己的 `config.json`。
+
+终端中可运行 `WeComNavHider.exe --check` 检查本机适配情况，或 `--self-test` 检查内置资源和 Frida（不会挂载企业微信）。程序未做代码签名。Release 附带 ZIP 的 SHA-256 校验值。
+
+### 从源码运行
+
+环境：Windows、PowerShell 7（`pwsh.exe`）、Python 3.10+（包含 `pythonw.exe`）。
 
 1. 下载源码并完整解压到可写目录。
 2. 双击 **Setup.cmd**，将固定版本的 Frida 安装到本目录的 `deps/`。首次安装需要联网。
@@ -103,4 +113,16 @@ tests/               不依赖企业微信进程的自动检查
 
 ## 许可证
 
-项目原创代码使用 [MIT License](LICENSE)。Frida 是独立依赖，其许可证不由本项目的 MIT 许可证替代；本仓库仅声明依赖，不包含其二进制包。
+项目原创代码使用 [MIT License](LICENSE)。Frida 是独立依赖，其许可证不由本项目的 MIT 许可证替代。源码仓库不包含依赖二进制；Release 便携包包含 Python、Frida 和 PyInstaller 引导程序，相应许可证随包附在 `licenses/` 中。
+
+## 构建便携版
+
+在 Windows x64 的干净源码目录使用 Python 3.13：
+
+```powershell
+python -m venv .venv
+.venv/Scripts/python.exe -m pip install -r requirements-build.txt
+.venv/Scripts/python.exe build_release.py
+```
+
+生成文件位于 `dist/`。构建先执行 EXE 自检，再生成 ZIP 和 `SHA256SUMS.txt`。重复构建请使用新的源码目录，避免混入旧产物。

@@ -28,3 +28,22 @@ jobs:
           $tokens = $null
           [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD 'launch.ps1'), [ref]$tokens, [ref]$parseErrors) | Out-Null
           if ($parseErrors.Count) { $parseErrors | Out-String | Write-Error; exit 1 }
+  portable-build:
+    needs: unit-tests
+    runs-on: windows-latest
+    env:
+      PYTHONIOENCODING: utf-8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: x64
+      - run: python -m pip install -r requirements-build.txt
+      - run: python build_release.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64-portable
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS.txt

@@ -7,13 +7,14 @@ import threading
 from pathlib import Path
 from settings import ConfigWatcher, write_config
 from paths import find_wecom, find_dui
+from runtime import RESOURCE_ROOT, app_root, saved_paths, start_child
 
-ROOT = Path(__file__).resolve().parent
+ROOT = app_root()
 sys.path.insert(0, str(ROOT / "deps"))
-BUILD = json.loads((ROOT / "compatibility.json").read_text(encoding="utf-8"))
+BUILD = json.loads((RESOURCE_ROOT / "compatibility.json").read_text(encoding="utf-8"))
 EXPECTED = BUILD["exe_sha256"]
 DUI_EXPECTED = BUILD["dui_sha256"]
-JS = (ROOT / "hooks" / "navigation.js").read_text(encoding="utf-8")
+JS = (RESOURCE_ROOT / "hooks" / "navigation.js").read_text(encoding="utf-8")
 
 
 STOP_EVENT = "Local\\WeComNavigationLauncher_Stop_20261010"
@@ -65,16 +66,7 @@ def main():
     EXE = find_wecom(config.current["paths"].get("wecom", ""))
     if EXE is None:
         if args.background:
-            import subprocess
-
-            subprocess.Popen(
-                [
-                    str(Path(sys.executable).with_name("python.exe")),
-                    str(ROOT / "tui.py"),
-                ],
-                cwd=ROOT,
-                creationflags=subprocess.CREATE_NEW_CONSOLE,
-            )
+            start_child(False)
             print("未检测到企业微信，已打开终端填写路径。", flush=True)
             return
         raise RuntimeError(
@@ -96,11 +88,7 @@ def main():
         print("配置隐藏：" + ("、".join(config.current["items"]) or "无"))
         print(f"企业微信：{EXE}\n界面库：{DUI}\nPython：{sys.executable}")
         return
-    resolved_paths = dict(
-        config.current["paths"],
-        wecom=str(EXE),
-        python=str(Path(sys.executable).with_name("python.exe")),
-    )
+    resolved_paths = saved_paths(config.current["paths"], EXE)
     if resolved_paths != config.current["paths"]:
         write_config(ROOT / "config.json", config.current["items"], resolved_paths)
         config = ConfigWatcher(ROOT / "config.json")
@@ -217,7 +205,7 @@ def main():
     print("已结束。恢复入口可刷新导航或重启企业微信。")
 
 
-if __name__ == "__main__":
+def run():
     background = "--background" in sys.argv
     if background:
         sys.stdout = sys.stderr = (ROOT / "launcher.log").open(
@@ -232,3 +220,7 @@ if __name__ == "__main__":
                 None, str(error), "企业微信导航启动器", 0x10
             )
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    run()

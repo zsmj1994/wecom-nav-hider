@@ -1,14 +1,13 @@
 """Windows terminal picker; saves preferences and starts the windowless helper."""
 
 import ctypes
-from pathlib import Path
-import subprocess
 import sys
 
 from settings import NAV_ITEMS, parse_config, write_config
 from paths import find_wecom, executable
+from runtime import app_root, saved_paths, start_child
 
-ROOT = Path(__file__).resolve().parent
+ROOT = app_root()
 MUTEX = "Local\\WeComNavigationLauncher_20261010"
 
 
@@ -132,22 +131,12 @@ def main():
     write_config(
         config_path,
         selection.items(),
-        dict(config["paths"], wecom=str(wecom), python=str(Path(sys.executable))),
+        saved_paths(config["paths"], wecom),
     )
     if background_running():
         print("已保存。现有后台启动器将自动加载新选择。")
     else:
-        pythonw = Path(sys.executable).with_name("pythonw.exe")
-        if not pythonw.exists():
-            raise RuntimeError("配置已保存，但找不到 pythonw.exe；后台未启动。")
-        subprocess.Popen(
-            [str(pythonw), str(ROOT / "launcher.py"), "--background"],
-            cwd=ROOT,
-            creationflags=subprocess.CREATE_NO_WINDOW,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        start_child(True)
         print("已保存并启动后台程序；挂载失败会弹窗提示。")
     print("隐藏名单：" + ("、".join(selection.items()) or "无"))
 
