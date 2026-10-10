@@ -21,13 +21,17 @@ class PathTests(unittest.TestCase):
             b = root / "B"
             b.mkdir()
             (b / "WXWork.exe").touch()
-            self.assertEqual(paths.find_wecom(str(a), [str(b)]), a / "WXWork.exe")
             self.assertEqual(
-                paths.find_wecom(str(root / "missing"), [str(b)]), b / "WXWork.exe"
+                paths.find_wecom(str(a), [str(b)]), (a / "WXWork.exe").resolve()
+            )
+            self.assertEqual(
+                paths.find_wecom(str(root / "missing"), [str(b)]),
+                (b / "WXWork.exe").resolve(),
             )
             self.assertIsNone(paths.find_wecom("", []))
             self.assertEqual(
-                paths.executable('"' + str(a / "WXWork.exe") + '"'), a / "WXWork.exe"
+                paths.executable('"' + str(a / "WXWork.exe") + '"'),
+                (a / "WXWork.exe").resolve(),
             )
 
     def test_legacy_config_and_preserve_paths_on_hide_edit(self):
@@ -61,7 +65,7 @@ class PathTests(unittest.TestCase):
             ):
                 tui.main()
             saved = parse_config(cfg.read_bytes())
-            self.assertEqual(saved["paths"]["wecom"], str(exe))
+            self.assertEqual(saved["paths"]["wecom"], str(exe.resolve()))
             self.assertEqual(saved["items"], ["微盘"])
             before = cfg.read_bytes()
             with (
