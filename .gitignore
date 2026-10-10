@@ -1,0 +1,19 @@
+# Local preferences and diagnostics
+/config.json
+*.log
+*.jsonl
+
+# Installed dependencies and Python caches
+/deps/
+/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Packaging and editor output
+/dist/
+/build/
+*.zip
+.config-*.tmp
+.vscode/
+.idea/
