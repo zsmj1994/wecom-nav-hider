@@ -18,8 +18,9 @@ class ReleaseTests(unittest.TestCase):
 
     def test_adaptation_constants_match_verified_call_sites(self):
         build = json.loads((ROOT / "compatibility.json").read_text(encoding="utf-8"))
-        self.assertEqual(build["assistant_predicate_rva"], 0x243DAC0)
-        self.assertEqual(build["navigation_return_rva"], 0x692DA94)
+        self.assertEqual(build["version"], "5.0.12.6013")
+        self.assertEqual(build["assistant_predicate_rva"], 0x256A700)
+        self.assertEqual(build["navigation_return_rva"], 0x6CE5C54)
         self.assertEqual(build["architecture"], "ia32")
         for key in ["exe_sha256", "dui_sha256"]:
             self.assertEqual(len(bytes.fromhex(build[key])), 32)

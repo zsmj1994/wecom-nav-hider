@@ -1,6 +1,6 @@
 # 版本适配
 
-当前适配：WXWork 5.0.11.6029，目标进程架构 `ia32`。
+当前适配：WXWork 5.0.12.6013，目标进程架构 `ia32`。旧版 5.0.11.6029 对应工具 v0.1.0。
 
 `compatibility.json` 集中保存以下信息：
 
@@ -8,13 +8,15 @@
 | --- | --- |
 | `exe_sha256` | 确保执行文件与分析构建完全一致 |
 | `dui_sha256` | 确保界面库布局与控件结构一致 |
-| `assistant_predicate_rva` | 智能助理可见性判断函数，当前为 `0x243DAC0` |
-| `navigation_return_rva` | 仅限导航调用的返回地址，当前为 `0x692DA94` |
+| `assistant_predicate_rva` | 智能助理可见性判断函数，当前为 `0x256A700` |
+| `navigation_return_rva` | 仅限导航调用的返回地址，当前为 `0x6CE5C54` |
 | `control_name_offset` | 控件名称字段偏移，当前为 `0x78` |
 | `control_parent_offset` | 父控件字段偏移，当前为 `0x50` |
 | `navigation_container` | 将隐藏范围限制在导航容器内 |
 
 地址为相对于模块加载基址的 RVA，运行时根据实际基址计算。JSON 中使用十进制数值。不要把首选映像虚拟地址直接当作 RVA。
+
+5.0.12.6013 静态核对链路：导航布局 `weclaw_tab_op_layout` 的显示判断在 VA `0x70E5C4F` 调用 `0x38A4AD0`，后者跳转到 `0x296A700`。该函数读取 `enable_wecomagent`，默认值为 `0`，与 `1` 比较；导航返回 VA 为 `0x70E5C54`。首选映像基址为 `0x400000`。界面库的 `GetName` / `GetParent` 导出分别确认字段偏移仍为 `0x78` / `0x50`；两个 `SetVisible` 导出签名不变。
 
 智能助理的函数有其他调用者。仅匹配导航返回地址时覆盖返回值，避免影响其他业务调用。其他项目通过已命名控件的 `SetVisible` 调用隐藏，且检查父链属于导航容器；同时处理外层布局以减少空位。
 
