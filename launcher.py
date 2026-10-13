@@ -1,19 +1,17 @@
 import argparse
 import ctypes
-import hashlib
 import json
 import sys
 import threading
 from pathlib import Path
 from settings import ConfigWatcher, write_config
-from paths import find_wecom, find_dui
-from runtime import RESOURCE_ROOT, app_root, saved_paths, start_child
+from paths import find_wecom
+from runtime import RESOURCE_ROOT, app_root, saved_paths, start_child, frozen
+from compatibility import resolve
 
 ROOT = app_root()
 sys.path.insert(0, str(ROOT / "deps"))
 BUILD = json.loads((RESOURCE_ROOT / "compatibility.json").read_text(encoding="utf-8"))
-EXPECTED = BUILD["exe_sha256"]
-DUI_EXPECTED = BUILD["dui_sha256"]
 JS = (RESOURCE_ROOT / "hooks" / "navigation.js").read_text(encoding="utf-8")
 
 
@@ -53,6 +51,21 @@ def request_stop():
         kernel.CloseHandle(handle)
 
 
+def launch_normal(exe):
+    import subprocess
+
+    # Frozen apps alter the DLL search directory; do not pass it to WeCom.
+    kernel = ctypes.WinDLL('kernel32', use_last_error=True) if frozen() else None
+    if kernel:
+        kernel.SetDllDirectoryW.argtypes = [ctypes.c_wchar_p]
+        kernel.SetDllDirectoryW(None)
+    try:
+        subprocess.Popen([str(exe)], cwd=exe.parent)
+    finally:
+        if kernel:
+            kernel.SetDllDirectoryW(str(RESOURCE_ROOT))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
@@ -72,11 +85,18 @@ def main():
         raise RuntimeError(
             "未检测到企业微信。请双击 Start-WeCom.cmd，在终端中填写 WXWork.exe 路径。"
         )
-    if hashlib.sha256(EXE.read_bytes()).hexdigest() != EXPECTED:
-        raise RuntimeError(
-            "企业微信版本已变化。为避免使用错误地址，已停止；需要重新定位后更新启动器。"
-        )
-    DUI = find_dui(EXE, DUI_EXPECTED)
+    build, DUI, detail = resolve(EXE, ROOT / 'compatibility-cache.json', BUILD)
+    print(detail, flush=True)
+    if build is None:
+        if args.check:
+            print('该版本暂未适配。仅检查：未启动或挂载企业微信。')
+            return
+        launch_normal(EXE)
+        notice = '该版本暂未适配，已正常启动企业微信，本次未启用导航隐藏。\n' + detail
+        print(notice, flush=True)
+        if args.background:
+            ctypes.windll.user32.MessageBoxW(None, notice, 'WeCom Nav Hider', 0x40)
+        return
     try:
         import frida
     except ImportError as error:
@@ -157,7 +177,7 @@ def main():
             "__INITIAL_CONFIG__", json.dumps(config.current, ensure_ascii=True)
         )
         source = source.replace(
-            "__BUILD_CONFIG__", json.dumps(BUILD, ensure_ascii=True)
+            "__BUILD_CONFIG__", json.dumps(build, ensure_ascii=True)
         )
         script = session.create_script(source)
 

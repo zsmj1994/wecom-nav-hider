@@ -1,5 +1,7 @@
 # Local preferences and diagnostics
 /config.json
+/compatibility-cache.json
+.compat-*.tmp
 *.log
 *.jsonl
 

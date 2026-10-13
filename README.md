@@ -4,13 +4,13 @@ Windows 企业微信导航栏精简工具。通过终端勾选要隐藏的导航
 
 使用 Python 管理启动、配置和会话，使用 Frida 加载进程内 JavaScript 拦截脚本。不修改企业微信磁盘程序文件，不修改服务端配置；退出后台程序后，刷新导航或重启企业微信可恢复。
 
-> 当前适配 **WXWork 5.0.12.6013 / 32 位客户端**，并严格校验文件 SHA-256。自动检测安装位置不等于兼容其他版本。仍使用 5.0.11.6029 的用户请使用 v0.1.0。
+> v0.2.0 启动时自动获取 GitHub 已验证适配目录，目前覆盖 **WXWork 5.0.11.6029 和 5.0.12.6013 / 32 位客户端**。未匹配的版本正常启动企业微信并提示，本次不启用隐藏功能。
 
 ## 快速开始
 
 ### EXE 便携版（推荐）
 
-从 [GitHub Releases](https://github.com/zsmj1994/wecom-nav-hider/releases/latest) 下载 `windows-x64.zip`，完整解压到可写目录，双击 **WeComNavHider.exe**。无需安装 Python、PowerShell 或 Frida。需要 Windows 10/11 x64，企业微信仍须匹配上方指定版本。
+从 [GitHub Releases](https://github.com/zsmj1994/wecom-nav-hider/releases/latest) 下载 `windows-x64.zip`，完整解压到可写目录，双击 **WeComNavHider.exe**。无需安装 Python、PowerShell 或 Frida。需要 Windows 10/11 x64；仅匹配已验证构建时启用隐藏。
 
 EXE 旁边的 `_internal` 是运行库，不能删除或单独移动 EXE。首次运行自动创建 `config.json`；选择后回车即可后台运行，终端可关闭。双击 `Stop-Hiding.cmd` 停止隐藏；`Start-Background.vbs` 使用已保存配置后台启动。配置与日志保存在 EXE 同目录，升级时可保留自己的 `config.json`。
 
@@ -82,9 +82,15 @@ Enter 保存并后台运行  Esc/Q 取消
 
 ## 兼容性与验证范围
 
+每次启动（含 `--check`）从固定的 GitHub 地址读取 [adaptations.json](https://github.com/zsmj1994/wecom-nav-hider/blob/main/adaptations.json)，网络超时为 3 秒。下载内容仅限 JSON 参数，不下载代码或执行远程脚本，也不上传本机路径、配置、文件或账户信息。
+
+通过协议与字段校验的目录原子保存为 `compatibility-cache.json`。网络故障或远程内容无效时使用已验证缓存，另保留内置的 5.0.12.6013 适配作为离线兜底。缓存不可写不会阻止使用本次有效下载。挂载前仍逐项匹配 EXE SHA-256、PE 架构、RVA 映像范围和 DuiLib SHA-256。
+
+没有适配或界面库不匹配时，直接启动企业微信，提示“该版本暂未适配，本次未启用导航隐藏”；不会加载 Frida 或修改企业微信。`--check` 只输出检查结果，不启动企业微信。后续相同拦截协议的新版本只需维护者验证并更新适配目录；拦截逻辑变化仍需要升级启动器。
+
 智能助理隐藏已完成运行时和人工界面验证。智能文档、智能总结、微盘、高级功能已核对同版客户端的控件名称与运行时显示调用，完整界面验收尚未完成。其他可选项基于同版导航资源映射，尚未逐项实测。
 
-软件更新、不同构建或不同界面库可能不兼容。哈希不匹配时停止挂载；不要仅替换哈希绕过检查。详见 [版本适配说明](docs/compatibility.md)。
+软件更新、不同构建或不同界面库可能不兼容。哈希不匹配时不挂载；不要仅替换哈希绕过检查。详见 [版本适配说明](docs/compatibility.md)。
 
 这是非官方个人界面定制工具，与腾讯无隶属关系。仓库不包含企业微信二进制文件、账户数据或运行时内存转储。
 

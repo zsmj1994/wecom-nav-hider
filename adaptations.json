@@ -1,0 +1,30 @@
+{
+  "profiles": [
+    {
+      "version": "5.0.11.6029",
+      "architecture": "ia32",
+      "exe_sha256": "f46dbfb0059d4527b76b8dd3dfcd1dd45604c5ba257af80c064e4896e02cf50e",
+      "dui_sha256": "67520a6128937bda34ce8b1b0f80c9d9ab9225c096ec9fcf0a11e9f192dffacb",
+      "assistant_predicate_rva": 38001344,
+      "navigation_return_rva": 110287508,
+      "control_name_offset": 120,
+      "control_parent_offset": 80,
+      "navigation_container": "auto_adjust_op_container",
+      "verified": true
+    },
+    {
+      "version": "5.0.12.6013",
+      "architecture": "ia32",
+      "exe_sha256": "84cbb38a6cb6551a19e4f651a85e9098f0b09a1397dc4c560d6ed50560877600",
+      "dui_sha256": "38ea44fa4d126f107f093acd372de7906c5c5afb966895ce4a32b99f36946129",
+      "assistant_predicate_rva": 39233280,
+      "navigation_return_rva": 114187348,
+      "control_name_offset": 120,
+      "control_parent_offset": 80,
+      "navigation_container": "auto_adjust_op_container",
+      "verified": true
+    }
+  ],
+  "schema_version": 1,
+  "hook_api": 1
+}
